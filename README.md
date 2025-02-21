@@ -2,7 +2,7 @@
 
 A Helm chart to demonstrate a parent-child (sub-chart) setup for deploying apps with dependencies on one or more other charts.
 
-There are 3 main scenarios in which we can use hooks with helm dependencies/sub-charts:
+There are 3 main scenarios this setup can be applied to:
 
 - Parent objects/manifests deploy before chart dependencies: Annotate the manifests defined in the `templates` directory with `"helm.sh/hook": "pre-install, pre-upgrade"` if you want the parent chart resources to be applied before the dependencies.
 - Parent objects/manifests deploy after chart dependencies: Annotate the manifests defined in the `templates/` directory with `"helm.sh/hook": "post-install, post-upgrade"` to get the parent chart resources to apply after the dependencies.

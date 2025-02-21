@@ -1,0 +1,50 @@
+
+# SUB CHARTS DEFINITION
+mysql:  # use sub-chart name and add its values as children of this key (indented in)
+  # Chart Params: https://artifacthub.io/packages/helm/bitnami/mysql
+  global:
+    defaultStorageClass: "azure-csi"
+    compatibility:
+      openshift:
+        adaptSecurityContext: auto
+  nameOverride: "mysql-sub-chart-demo"
+  auth:
+    rootPassword: ""
+    createDatabase: true
+    database: "sub-chart-demo"
+    username: "sub-chart-demo"
+    password: "sub-chart-demo"
+
+wordpress:  # use sub-chart name and add its values as children of this key (indented in)
+  # Chart Params: https://artifacthub.io/packages/helm/bitnami/wordpress
+  global:
+    defaultStorageClass: "azure-csi"
+    compatibility:
+      openshift:
+        adaptSecurityContext: auto
+  nameOverride: "wordpress-sub-chart-demo"
+  wordpressUsername: user
+  wordpressPassword: ""
+  wordpressEmail: user@example.com
+  wordpressFirstName: FirstName
+  wordpressLastName: LastName
+  wordpressBlogName: LuqmanBarry's Blog!
+  mariadb:
+    enabled: false
+  externalDatabase:
+    host: "mysql-sub-chart-demo"
+    port: 3306
+    user: "sub-chart-demo"
+    password: "sub-chart-demo"
+    database: "sub-chart-demo"
+
+# PARENT CHART DEFINITION
+business_unit: sales
+aws_region: us-east-1
+storageClassName: managed-csi
+micro_services:
+  - name: luqman-eshop
+    namespace: luqman-eshop
+    pvc_name: luqman-eshop
+    pvc_size: 20Gi
+    image: image-registry.openshift-image-registry.svc:5000/openshift/nginx

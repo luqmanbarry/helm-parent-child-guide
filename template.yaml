@@ -1,0 +1,997 @@
+---
+# Source: helm-parent-child-example/charts/mysql/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: parent-child-demo-mysql-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.2.4
+    app.kubernetes.io/part-of: mysql
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: parent-child-demo
+      app.kubernetes.io/managed-by: Helm
+      app.kubernetes.io/name: mysql-sub-chart-demo
+      app.kubernetes.io/version: 8.4.4
+      helm.sh/chart: mysql-12.2.4
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow connection from other cluster pods
+    - ports:
+        - port: 3306
+---
+# Source: helm-parent-child-example/charts/wordpress/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: parent-child-demo-wordpress-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: wordpress-sub-chart-demo
+    app.kubernetes.io/version: 6.7.2
+    helm.sh/chart: wordpress-24.1.12
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: parent-child-demo
+      app.kubernetes.io/name: wordpress-sub-chart-demo
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    - ports:
+        - port: 8080
+        - port: 8443
+---
+# Source: helm-parent-child-example/charts/mysql/templates/primary/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: parent-child-demo-mysql-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.2.4
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/component: primary
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: parent-child-demo
+      app.kubernetes.io/name: mysql-sub-chart-demo
+      app.kubernetes.io/part-of: mysql
+      app.kubernetes.io/component: primary
+---
+# Source: helm-parent-child-example/charts/wordpress/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: parent-child-demo-wordpress-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: wordpress-sub-chart-demo
+    app.kubernetes.io/version: 6.7.2
+    helm.sh/chart: wordpress-24.1.12
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: parent-child-demo
+      app.kubernetes.io/name: wordpress-sub-chart-demo
+---
+# Source: helm-parent-child-example/charts/mysql/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: parent-child-demo-mysql-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.2.4
+    app.kubernetes.io/part-of: mysql
+automountServiceAccountToken: false
+secrets:
+  - name: parent-child-demo-mysql-sub-chart-demo
+---
+# Source: helm-parent-child-example/charts/wordpress/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: parent-child-demo-wordpress-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: wordpress-sub-chart-demo
+    app.kubernetes.io/version: 6.7.2
+    helm.sh/chart: wordpress-24.1.12
+automountServiceAccountToken: false
+---
+# Source: helm-parent-child-example/charts/mysql/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: parent-child-demo-mysql-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.2.4
+    app.kubernetes.io/part-of: mysql
+type: Opaque
+data:
+  mysql-root-password: "Y0h1SFpxQUQyVA=="
+  mysql-password: "c3ViLWNoYXJ0LWRlbW8="
+---
+# Source: helm-parent-child-example/charts/wordpress/templates/externaldb-secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: parent-child-demo-wordpress-sub-chart-demo-externaldb
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: wordpress-sub-chart-demo
+    app.kubernetes.io/version: 6.7.2
+    helm.sh/chart: wordpress-24.1.12
+type: Opaque
+data:
+  mariadb-password: "c3ViLWNoYXJ0LWRlbW8="
+---
+# Source: helm-parent-child-example/charts/wordpress/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: parent-child-demo-wordpress-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: wordpress-sub-chart-demo
+    app.kubernetes.io/version: 6.7.2
+    helm.sh/chart: wordpress-24.1.12
+type: Opaque
+data:
+  wordpress-password: "U0pqZzVTb082RQ=="
+---
+# Source: helm-parent-child-example/charts/mysql/templates/primary/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: parent-child-demo-mysql-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.2.4
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/component: primary
+data:
+  my.cnf: |-
+    [mysqld]
+    authentication_policy='* ,,'
+    skip-name-resolve
+    explicit_defaults_for_timestamp
+    basedir=/opt/bitnami/mysql
+    plugin_dir=/opt/bitnami/mysql/lib/plugin
+    port=3306
+    mysqlx=0
+    mysqlx_port=33060
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    datadir=/bitnami/mysql/data
+    tmpdir=/opt/bitnami/mysql/tmp
+    max_allowed_packet=16M
+    bind-address=*
+    pid-file=/opt/bitnami/mysql/tmp/mysqld.pid
+    log-error=/opt/bitnami/mysql/logs/mysqld.log
+    character-set-server=UTF8
+    slow_query_log=0
+    long_query_time=10.0
+    
+    [client]
+    port=3306
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    default-character-set=UTF8
+    plugin_dir=/opt/bitnami/mysql/lib/plugin
+    
+    [manager]
+    port=3306
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    pid-file=/opt/bitnami/mysql/tmp/mysqld.pid
+---
+# Source: helm-parent-child-example/charts/wordpress/templates/pvc.yaml
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: parent-child-demo-wordpress-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: wordpress-sub-chart-demo
+    app.kubernetes.io/version: 6.7.2
+    helm.sh/chart: wordpress-24.1.12
+spec:
+  accessModes:
+    - "ReadWriteOnce"
+  resources:
+    requests:
+      storage: "10Gi"
+  storageClassName: azure-csi
+---
+# Source: helm-parent-child-example/charts/mysql/templates/primary/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: parent-child-demo-mysql-sub-chart-demo-headless
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.2.4
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/component: primary
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+  selector:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/component: primary
+---
+# Source: helm-parent-child-example/charts/mysql/templates/primary/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: parent-child-demo-mysql-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.2.4
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/component: primary
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: mysql
+      port: 3306
+      protocol: TCP
+      targetPort: mysql
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/component: primary
+---
+# Source: helm-parent-child-example/charts/wordpress/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: parent-child-demo-wordpress-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: wordpress-sub-chart-demo
+    app.kubernetes.io/version: 6.7.2
+    helm.sh/chart: wordpress-24.1.12
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: "Cluster"
+  sessionAffinity: None
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
+    - name: https
+      port: 443
+      protocol: TCP
+      targetPort: https
+  selector:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/name: wordpress-sub-chart-demo
+---
+# Source: helm-parent-child-example/charts/wordpress/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: parent-child-demo-wordpress-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: wordpress-sub-chart-demo
+    app.kubernetes.io/version: 6.7.2
+    helm.sh/chart: wordpress-24.1.12
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: parent-child-demo
+      app.kubernetes.io/name: wordpress-sub-chart-demo
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: parent-child-demo
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: wordpress-sub-chart-demo
+        app.kubernetes.io/version: 6.7.2
+        helm.sh/chart: wordpress-24.1.12
+    spec:
+      
+      automountServiceAccountToken: false
+      # yamllint disable rule:indentation
+      hostAliases:
+        - hostnames:
+          - status.localhost
+          ip: 127.0.0.1
+      # yamllint enable rule:indentation
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: parent-child-demo
+                    app.kubernetes.io/name: wordpress-sub-chart-demo
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      serviceAccountName: parent-child-demo-wordpress-sub-chart-demo
+      initContainers:
+        - name: prepare-base-dir
+          image: docker.io/bitnami/wordpress:6.7.2-debian-12-r3
+          imagePullPolicy: "IfNotPresent"
+          resources:
+            limits:
+              cpu: 375m
+              ephemeral-storage: 2Gi
+              memory: 384Mi
+            requests:
+              cpu: 250m
+              ephemeral-storage: 50Mi
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+
+              . /opt/bitnami/scripts/liblog.sh
+              . /opt/bitnami/scripts/libfs.sh
+
+              info "Copying base dir to empty dir"
+              # In order to not break the application functionality (such as upgrades or plugins) we need
+              # to make the base directory writable, so we need to copy it to an empty dir volume
+              cp -r --preserve=mode /opt/bitnami/wordpress /emptydir/app-base-dir
+
+              info "Copying symlinks to stdout/stderr"
+              # We copy the logs folder because it has symlinks to stdout and stderr
+              if ! is_dir_empty /opt/bitnami/apache/logs; then
+                cp -r /opt/bitnami/apache/logs /emptydir/apache-logs-dir
+              fi
+
+              info "Copying default PHP config"
+              cp -r --preserve=mode /opt/bitnami/php/etc /emptydir/php-conf-dir
+
+              info "Copying php var directory"
+              if ! is_dir_empty /opt/bitnami/php/var; then
+                cp -r /opt/bitnami/php/var /emptydir/php-var-dir
+              fi
+
+              info "Copy operation completed"
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /emptydir
+      containers:
+        - name: wordpress
+          image: docker.io/bitnami/wordpress:6.7.2-debian-12-r3
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "yes"
+            - name: WORDPRESS_SKIP_BOOTSTRAP
+              value: "no"
+            - name: MARIADB_HOST
+              value: "mysql-sub-chart-demo"
+            - name: MARIADB_PORT_NUMBER
+              value: "3306"
+            - name: WORDPRESS_DATABASE_NAME
+              value: "sub-chart-demo"
+            - name: WORDPRESS_DATABASE_USER
+              value: "sub-chart-demo"
+            - name: WORDPRESS_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: parent-child-demo-wordpress-sub-chart-demo-externaldb
+                  key: mariadb-password
+            - name: WORDPRESS_USERNAME
+              value: "user"
+            - name: WORDPRESS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: parent-child-demo-wordpress-sub-chart-demo
+                  key: wordpress-password
+            - name: WORDPRESS_EMAIL
+              value: "user@example.com"
+            - name: WORDPRESS_FIRST_NAME
+              value: "FirstName"
+            - name: WORDPRESS_LAST_NAME
+              value: "LastName"
+            - name: WORDPRESS_HTACCESS_OVERRIDE_NONE
+              value: "no"
+            - name: WORDPRESS_ENABLE_HTACCESS_PERSISTENCE
+              value: "no"
+            - name: WORDPRESS_BLOG_NAME
+              value: "LuqmanBarry's Blog!"
+            - name: WORDPRESS_TABLE_PREFIX
+              value: "wp_"
+            - name: WORDPRESS_SCHEME
+              value: "http"
+            - name: WORDPRESS_EXTRA_WP_CONFIG_CONTENT
+              value: ""
+            - name: WORDPRESS_PLUGINS
+              value: "none"
+            - name: WORDPRESS_OVERRIDE_DATABASE_SETTINGS
+              value: "no"
+            - name: APACHE_HTTP_PORT_NUMBER
+              value: "8080"
+            - name: APACHE_HTTPS_PORT_NUMBER
+              value: "8443"
+          envFrom:
+          ports:
+            - name: http
+              containerPort: 8080
+            - name: https
+              containerPort: 8443
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: http
+            timeoutSeconds: 5
+          readinessProbe:
+            failureThreshold: 6
+            httpGet:
+              httpHeaders: []
+              path: /wp-login.php
+              port: 'http'
+              scheme: 'HTTP'
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 375m
+              ephemeral-storage: 2Gi
+              memory: 384Mi
+            requests:
+              cpu: 250m
+              ephemeral-storage: 50Mi
+              memory: 256Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /opt/bitnami/apache/conf
+              subPath: apache-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/apache/logs
+              subPath: apache-logs-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/apache/var/run
+              subPath: apache-tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/php/etc
+              subPath: php-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/php/tmp
+              subPath: php-tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/php/var
+              subPath: php-var-dir
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/wordpress
+              subPath: app-base-dir
+            - mountPath: /bitnami/wordpress
+              name: wordpress-data
+              subPath: wordpress
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: wordpress-data
+          persistentVolumeClaim:
+            claimName: parent-child-demo-wordpress-sub-chart-demo
+---
+# Source: helm-parent-child-example/charts/mysql/templates/primary/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: parent-child-demo-mysql-sub-chart-demo
+  namespace: "openshift-adp"
+  labels:
+    app.kubernetes.io/instance: parent-child-demo
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: mysql-sub-chart-demo
+    app.kubernetes.io/version: 8.4.4
+    helm.sh/chart: mysql-12.2.4
+    app.kubernetes.io/part-of: mysql
+    app.kubernetes.io/component: primary
+spec:
+  replicas: 1
+  podManagementPolicy: ""
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: parent-child-demo
+      app.kubernetes.io/name: mysql-sub-chart-demo
+      app.kubernetes.io/part-of: mysql
+      app.kubernetes.io/component: primary
+  serviceName: parent-child-demo-mysql-sub-chart-demo-headless
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/configuration: e195c22af1a92787f09dd95fe429c4f8044ba9805736887ced993c077d755346
+      labels:
+        app.kubernetes.io/instance: parent-child-demo
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: mysql-sub-chart-demo
+        app.kubernetes.io/version: 8.4.4
+        helm.sh/chart: mysql-12.2.4
+        app.kubernetes.io/part-of: mysql
+        app.kubernetes.io/component: primary
+    spec:
+      serviceAccountName: parent-child-demo-mysql-sub-chart-demo
+      
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: parent-child-demo
+                    app.kubernetes.io/name: mysql-sub-chart-demo
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      initContainers:
+        - name: preserve-logs-symlinks
+          image: docker.io/bitnami/mysql:8.4.4-debian-12-r4
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            limits:
+              cpu: 750m
+              ephemeral-storage: 2Gi
+              memory: 768Mi
+            requests:
+              cpu: 500m
+              ephemeral-storage: 50Mi
+              memory: 512Mi
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+
+              . /opt/bitnami/scripts/libfs.sh
+              # We copy the logs folder because it has symlinks to stdout and stderr
+              if ! is_dir_empty /opt/bitnami/mysql/logs; then
+                cp -r /opt/bitnami/mysql/logs /emptydir/app-logs-dir
+              fi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /emptydir
+      containers:
+        - name: mysql
+          image: docker.io/bitnami/mysql:8.4.4-debian-12-r4
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: parent-child-demo-mysql-sub-chart-demo
+                  key: mysql-root-password
+            - name: MYSQL_ENABLE_SSL
+              value: "no"
+            - name: MYSQL_USER
+              value: "sub-chart-demo"
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: parent-child-demo-mysql-sub-chart-demo
+                  key: mysql-password
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_DATABASE
+              value: "sub-chart-demo"
+          envFrom:
+          ports:
+            - name: mysql
+              containerPort: 3306
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - |
+                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
+                  if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
+                      password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
+                  fi
+                  mysqladmin status -uroot -p"${password_aux}"
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - |
+                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
+                  if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
+                      password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
+                  fi
+                  mysqladmin ping -uroot -p"${password_aux}" | grep "mysqld is alive"
+          startupProbe:
+            failureThreshold: 10
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - |
+                  password_aux="${MYSQL_ROOT_PASSWORD:-}"
+                  if [[ -f "${MYSQL_ROOT_PASSWORD_FILE:-}" ]]; then
+                      password_aux=$(cat "$MYSQL_ROOT_PASSWORD_FILE")
+                  fi
+                  mysqladmin ping -uroot -p"${password_aux}" | grep "mysqld is alive"
+          resources:
+            limits:
+              cpu: 750m
+              ephemeral-storage: 2Gi
+              memory: 768Mi
+            requests:
+              cpu: 500m
+              ephemeral-storage: 50Mi
+              memory: 512Mi
+          volumeMounts:
+            - name: data
+              mountPath: /bitnami/mysql
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/mysql/conf
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/mysql/tmp
+              subPath: app-tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/mysql/logs
+              subPath: app-logs-dir
+            - name: config
+              mountPath: /opt/bitnami/mysql/conf/my.cnf
+              subPath: my.cnf
+      volumes:
+        - name: config
+          configMap:
+            name: parent-child-demo-mysql-sub-chart-demo
+        - name: empty-dir
+          emptyDir: {}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          app.kubernetes.io/instance: parent-child-demo
+          app.kubernetes.io/name: mysql-sub-chart-demo
+          app.kubernetes.io/component: primary
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "8Gi"
+        storageClassName: azure-csi
+---
+# Source: helm-parent-child-example/templates/microservice.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "luqman-eshop"
+  annotations:
+    "helm.sh/hook": "pre-install, pre-upgrade"
+    "helm.sh/hook-weight": "1"
+spec: {}
+---
+# Source: helm-parent-child-example/templates/microservice.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "luqman-eshop"
+  namespace: "luqman-eshop"
+  annotations:
+    "helm.sh/hook": "pre-install, pre-upgrade"
+    "helm.sh/hook-weight": "2"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "20Gi"
+  storageClassName: managed-csi
+  volumeMode: Filesystem
+---
+# Source: helm-parent-child-example/templates/microservice.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: "luqman-eshop"
+  name: "luqman-eshop"
+  namespace: "luqman-eshop"
+  annotations:
+    "helm.sh/hook": "post-install, post-upgrade"
+    "helm.sh/hook-weight": "2"
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: "luqman-eshop"
+  type: LoadBalancer
+---
+# Source: helm-parent-child-example/templates/microservice.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: "luqman-eshop"
+  name: "luqman-eshop"
+  namespace: "luqman-eshop"
+  annotations:
+    "helm.sh/hook": "post-install, post-upgrade"
+    "helm.sh/hook-weight": "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "luqman-eshop"
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: "luqman-eshop"
+    spec:
+      containers:
+      - name: "luqman-eshop-server"
+        image: "image-registry.openshift-image-registry.svc:5000/openshift/nginx"
+        ports:
+          - containerPort: 8080
+        command:
+          - /bin/sh
+          - -c
+          - |-
+            while true;
+            do
+              echo "Current Timestamp: $(date +'%Y-%m-%d_%H-%M-%S-%3N')"
+              sleep 60
+            done
+        volumeMounts:
+          - mountPath: "/app/data"
+            name: "luqman-eshop"
+      - name: "luqman-eshop-data-loader"
+        ports:
+          - containerPort: 8081
+        resources:
+          requests:
+            memory: 100Mi
+            cpu: 50m
+          limits:
+            memory: 300Mi
+            cpu: 250m
+        env:
+          - name: RW_TEST_PATH
+            value: "raw-bin"
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: VOL_MOUNT_PATH
+            value: "/app/data"
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+        image: "image-registry.openshift-image-registry.svc:5000/openshift/nginx"
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - mountPath: "/app/data"
+            name: "luqman-eshop"
+        command:
+          - /bin/sh
+          - -c
+          - |
+            mkdir -p "${VOL_MOUNT_PATH}/${RW_TEST_PATH}"
+            
+            while true; 
+            do 
+              CURRENT_TIME="$(date +'%Y-%m-%d-%H-%M')"
+              RAW_BIN_DIR="${VOL_MOUNT_PATH}/${RW_TEST_PATH}/${CURRENT_TIME}"
+              DATA_DIR="${VOL_MOUNT_PATH}/${CURRENT_TIME}/POD_${POD_NAME}/NODE_${NODE_NAME}"
+              mkdir -p "${DATA_DIR}";
+              mkdir -p "${RAW_BIN_DIR}"
+
+              for i in {1..20}; 
+              do
+                dd if=/dev/urandom of="${RAW_BIN_DIR}/static-pv-${i}.log" bs=1M count=10;
+              done
+              
+              output="$(date +'%Y-%m-%d_%H-%M-%S-%3N')"; 
+              file_name="static-pv-$(date +'%m%d%Y-T%H%M').log";
+              echo "Current Timestamp: ${output}";
+              echo "Written on: ${output}" >> "${DATA_DIR}/${file_name}";
+              sleep 300; 
+            done
+      volumes:
+      - name: "luqman-eshop"
+        persistentVolumeClaim:
+          claimName: "luqman-eshop"
+---
+# Source: helm-parent-child-example/templates/microservice.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: "luqman-eshop"
+  namespace: "luqman-eshop"
+  labels:
+    app: "luqman-eshop"
+    service: "luqman-eshop"
+  annotations:
+    "helm.sh/hook": "post-install, post-upgrade"
+    "helm.sh/hook-weight": "3"
+spec:
+  to:
+    kind: Service
+    name: "luqman-eshop"
+  port:
+    targetPort: 8080

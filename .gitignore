@@ -1,0 +1,8 @@
+# Chart dependencies
+**/charts/*.tgz
+Chart.lock
+.DS_Store
+requirements.lock
+# IDE files
+.vscode/
+.idea/

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: {{ .Values.app.name }}
   name: {{ .Values.app.name }}
-  namespace: {{ .Values.namespace }}
+  namespace: {{ .Values.namespace | default .Release.Namespace }}
   annotations:
     "helm.sh/hook": "post-install, post-upgrade"
     "helm.sh/hook-weight": "1"

@@ -1,3 +1,14 @@
+
+---
+# Source: helm-parent-child-example/templates/10-namespace.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "eshop-dev"
+  annotations:
+    "helm.sh/hook": "pre-install, pre-upgrade"
+    "helm.sh/hook-weight": "0"
+spec: {}
 ---
 # Source: helm-parent-child-example/charts/mysql/templates/networkpolicy.yaml
 kind: NetworkPolicy
@@ -12,6 +23,8 @@ metadata:
     app.kubernetes.io/version: 8.4.4
     helm.sh/chart: mysql-12.2.4
     app.kubernetes.io/part-of: mysql
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   podSelector:
     matchLabels:
@@ -42,6 +55,8 @@ metadata:
     app.kubernetes.io/name: wordpress-sub-chart-demo
     app.kubernetes.io/version: 6.7.2
     helm.sh/chart: wordpress-24.1.12
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   podSelector:
     matchLabels:
@@ -71,6 +86,8 @@ metadata:
     helm.sh/chart: mysql-12.2.4
     app.kubernetes.io/part-of: mysql
     app.kubernetes.io/component: primary
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   maxUnavailable: 1
   selector:
@@ -92,6 +109,8 @@ metadata:
     app.kubernetes.io/name: wordpress-sub-chart-demo
     app.kubernetes.io/version: 6.7.2
     helm.sh/chart: wordpress-24.1.12
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   maxUnavailable: 1
   selector:
@@ -112,9 +131,11 @@ metadata:
     app.kubernetes.io/version: 8.4.4
     helm.sh/chart: mysql-12.2.4
     app.kubernetes.io/part-of: mysql
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 automountServiceAccountToken: false
 secrets:
-  - name: parent-child-demo-mysql-sub-chart-demo
+  - name: mysql-sub-chart-auth
 ---
 # Source: helm-parent-child-example/charts/wordpress/templates/serviceaccount.yaml
 apiVersion: v1
@@ -128,25 +149,9 @@ metadata:
     app.kubernetes.io/name: wordpress-sub-chart-demo
     app.kubernetes.io/version: 6.7.2
     helm.sh/chart: wordpress-24.1.12
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 automountServiceAccountToken: false
----
-# Source: helm-parent-child-example/charts/mysql/templates/secrets.yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: parent-child-demo-mysql-sub-chart-demo
-  namespace: "openshift-adp"
-  labels:
-    app.kubernetes.io/instance: parent-child-demo
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: mysql-sub-chart-demo
-    app.kubernetes.io/version: 8.4.4
-    helm.sh/chart: mysql-12.2.4
-    app.kubernetes.io/part-of: mysql
-type: Opaque
-data:
-  mysql-root-password: "Y0h1SFpxQUQyVA=="
-  mysql-password: "c3ViLWNoYXJ0LWRlbW8="
 ---
 # Source: helm-parent-child-example/charts/wordpress/templates/externaldb-secrets.yaml
 apiVersion: v1
@@ -160,25 +165,37 @@ metadata:
     app.kubernetes.io/name: wordpress-sub-chart-demo
     app.kubernetes.io/version: 6.7.2
     helm.sh/chart: wordpress-24.1.12
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 type: Opaque
 data:
   mariadb-password: "c3ViLWNoYXJ0LWRlbW8="
 ---
-# Source: helm-parent-child-example/charts/wordpress/templates/secrets.yaml
+# Source: helm-parent-child-example/templates/11-mysql-secret.yaml
 apiVersion: v1
 kind: Secret
 metadata:
-  name: parent-child-demo-wordpress-sub-chart-demo
-  namespace: "openshift-adp"
-  labels:
-    app.kubernetes.io/instance: parent-child-demo
-    app.kubernetes.io/managed-by: Helm
-    app.kubernetes.io/name: wordpress-sub-chart-demo
-    app.kubernetes.io/version: 6.7.2
-    helm.sh/chart: wordpress-24.1.12
-type: Opaque
+  name: "mysql-sub-chart-auth"
+  namespace: eshop-dev
+  annotations:
+    "helm.sh/hook": "pre-install, pre-upgrade"
+    "helm.sh/hook-weight": "2"
 data:
-  wordpress-password: "U0pqZzVTb082RQ=="
+  mysql-root-password: SDQ0aHNORnIzOHo9M1Ar
+  mysql-replication-password: SDQ0aHNSNHIzOHo9M1Ar
+  mysql-password: SDRXaHNSNHI4OXo9M1Ar
+---
+# Source: helm-parent-child-example/templates/11-wordpress-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "wordpress-sub-chart-auth"
+  namespace: eshop-dev
+  annotations:
+    "helm.sh/hook": "pre-install, pre-upgrade"
+    "helm.sh/hook-weight": "2"
+data:
+  wordpress-password: SDQ0aHNORnIzOHo9M1Ar
 ---
 # Source: helm-parent-child-example/charts/mysql/templates/primary/configmap.yaml
 apiVersion: v1
@@ -194,6 +211,8 @@ metadata:
     helm.sh/chart: mysql-12.2.4
     app.kubernetes.io/part-of: mysql
     app.kubernetes.io/component: primary
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 data:
   my.cnf: |-
     [mysqld]
@@ -239,6 +258,8 @@ metadata:
     app.kubernetes.io/name: wordpress-sub-chart-demo
     app.kubernetes.io/version: 6.7.2
     helm.sh/chart: wordpress-24.1.12
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   accessModes:
     - "ReadWriteOnce"
@@ -246,6 +267,24 @@ spec:
     requests:
       storage: "10Gi"
   storageClassName: azure-csi
+---
+# Source: helm-parent-child-example/templates/11-persistent-volume-claim.yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "eshop"
+  namespace: "eshop-dev"
+  annotations:
+    "helm.sh/hook": "pre-install, pre-upgrade"
+    "helm.sh/hook-weight": "2"
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: "20Gi"
+  storageClassName: managed-csi
+  volumeMode: Filesystem
 ---
 # Source: helm-parent-child-example/charts/mysql/templates/primary/svc-headless.yaml
 apiVersion: v1
@@ -261,6 +300,8 @@ metadata:
     helm.sh/chart: mysql-12.2.4
     app.kubernetes.io/part-of: mysql
     app.kubernetes.io/component: primary
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   type: ClusterIP
   clusterIP: None
@@ -288,6 +329,8 @@ metadata:
     helm.sh/chart: mysql-12.2.4
     app.kubernetes.io/part-of: mysql
     app.kubernetes.io/component: primary
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   type: ClusterIP
   sessionAffinity: None
@@ -315,6 +358,8 @@ metadata:
     app.kubernetes.io/name: wordpress-sub-chart-demo
     app.kubernetes.io/version: 6.7.2
     helm.sh/chart: wordpress-24.1.12
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   type: LoadBalancer
   externalTrafficPolicy: "Cluster"
@@ -332,6 +377,25 @@ spec:
     app.kubernetes.io/instance: parent-child-demo
     app.kubernetes.io/name: wordpress-sub-chart-demo
 ---
+# Source: helm-parent-child-example/templates/13-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: "eshop"
+  name: "eshop"
+  namespace: "eshop-dev"
+  annotations:
+    "helm.sh/hook": "post-install, post-upgrade"
+    "helm.sh/hook-weight": "2"
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: "eshop"
+  type: LoadBalancer
+---
 # Source: helm-parent-child-example/charts/wordpress/templates/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -344,6 +408,8 @@ metadata:
     app.kubernetes.io/name: wordpress-sub-chart-demo
     app.kubernetes.io/version: 6.7.2
     helm.sh/chart: wordpress-24.1.12
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   selector:
     matchLabels:
@@ -490,7 +556,7 @@ spec:
             - name: WORDPRESS_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: parent-child-demo-wordpress-sub-chart-demo
+                  name: wordpress-sub-chart-auth
                   key: wordpress-password
             - name: WORDPRESS_EMAIL
               value: "user@example.com"
@@ -587,6 +653,111 @@ spec:
           persistentVolumeClaim:
             claimName: parent-child-demo-wordpress-sub-chart-demo
 ---
+# Source: helm-parent-child-example/templates/12-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: eshop
+  name: eshop
+  namespace: eshop-dev
+  annotations:
+    "helm.sh/hook": "post-install, post-upgrade"
+    "helm.sh/hook-weight": "1"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eshop
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: eshop
+    spec:
+      containers:
+      - name: "eshop-server"
+        image: "image-registry.openshift-image-registry.svc:5000/openshift/nginx"
+        ports:
+          - containerPort: 8080
+        command:
+          - /bin/sh
+          - -c
+          - |-
+            while true;
+            do
+              echo "Current Timestamp: $(date +'%Y-%m-%d_%H-%M-%S-%3N')"
+              sleep 60
+            done
+        volumeMounts:
+          - mountPath: "/app/data"
+            name: "eshop"
+      - name: "eshop-data-loader"
+        ports:
+          - containerPort: 8081
+        resources:
+          requests:
+            memory: 100Mi
+            cpu: 50m
+          limits:
+            memory: 300Mi
+            cpu: 250m
+        env:
+          - name: RW_TEST_PATH
+            value: "raw-bin"
+          - name: NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: VOL_MOUNT_PATH
+            value: "/app/data"
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+        image: "image-registry.openshift-image-registry.svc:5000/openshift/nginx"
+        imagePullPolicy: IfNotPresent
+        volumeMounts:
+          - mountPath: "/app/data"
+            name: "eshop"
+        command:
+          - /bin/sh
+          - -c
+          - |
+            mkdir -p "${VOL_MOUNT_PATH}/${RW_TEST_PATH}"
+            
+            while true; 
+            do 
+              CURRENT_TIME="$(date +'%Y-%m-%d-%H-%M')"
+              RAW_BIN_DIR="${VOL_MOUNT_PATH}/${RW_TEST_PATH}/${CURRENT_TIME}"
+              DATA_DIR="${VOL_MOUNT_PATH}/${CURRENT_TIME}/POD_${POD_NAME}/NODE_${NODE_NAME}"
+              mkdir -p "${DATA_DIR}";
+              mkdir -p "${RAW_BIN_DIR}"
+
+              for i in {1..20}; 
+              do
+                dd if=/dev/urandom of="${RAW_BIN_DIR}/static-pv-${i}.log" bs=1M count=10;
+              done
+              
+              output="$(date +'%Y-%m-%d_%H-%M-%S-%3N')"; 
+              file_name="static-pv-$(date +'%m%d%Y-T%H%M').log";
+              echo "Current Timestamp: ${output}";
+              echo "Written on: ${output}" >> "${DATA_DIR}/${file_name}";
+              sleep 300; 
+            done
+      volumes:
+      - name: "eshop"
+        persistentVolumeClaim:
+          claimName: "eshop"
+---
 # Source: helm-parent-child-example/charts/mysql/templates/primary/statefulset.yaml
 apiVersion: apps/v1
 kind: StatefulSet
@@ -601,6 +772,8 @@ metadata:
     helm.sh/chart: mysql-12.2.4
     app.kubernetes.io/part-of: mysql
     app.kubernetes.io/component: primary
+  annotations:
+    helm.sh/hook: pre-install, pre-upgrade
 spec:
   replicas: 1
   podManagementPolicy: ""
@@ -616,7 +789,7 @@ spec:
   template:
     metadata:
       annotations:
-        checksum/configuration: e195c22af1a92787f09dd95fe429c4f8044ba9805736887ced993c077d755346
+        checksum/configuration: d309f4c58d2fc5c5d6cbe8fcea1ae5f513c3498d457f5761bb76587418a6c92a
       labels:
         app.kubernetes.io/instance: parent-child-demo
         app.kubernetes.io/managed-by: Helm
@@ -710,7 +883,7 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: parent-child-demo-mysql-sub-chart-demo
+                  name: mysql-sub-chart-auth
                   key: mysql-root-password
             - name: MYSQL_ENABLE_SSL
               value: "no"
@@ -719,7 +892,7 @@ spec:
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: parent-child-demo-mysql-sub-chart-demo
+                  name: mysql-sub-chart-auth
                   key: mysql-password
             - name: MYSQL_PORT
               value: "3306"
@@ -817,6 +990,8 @@ spec:
           app.kubernetes.io/instance: parent-child-demo
           app.kubernetes.io/name: mysql-sub-chart-demo
           app.kubernetes.io/component: primary
+        annotations:
+          helm.sh/hook: pre-install, pre-upgrade
       spec:
         accessModes:
           - "ReadWriteOnce"
@@ -825,173 +1000,21 @@ spec:
             storage: "8Gi"
         storageClassName: azure-csi
 ---
-# Source: helm-parent-child-example/templates/microservice.yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: "luqman-eshop"
-  annotations:
-    "helm.sh/hook": "pre-install, pre-upgrade"
-    "helm.sh/hook-weight": "1"
-spec: {}
----
-# Source: helm-parent-child-example/templates/microservice.yaml
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: "luqman-eshop"
-  namespace: "luqman-eshop"
-  annotations:
-    "helm.sh/hook": "pre-install, pre-upgrade"
-    "helm.sh/hook-weight": "2"
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: "20Gi"
-  storageClassName: managed-csi
-  volumeMode: Filesystem
----
-# Source: helm-parent-child-example/templates/microservice.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: "luqman-eshop"
-  name: "luqman-eshop"
-  namespace: "luqman-eshop"
-  annotations:
-    "helm.sh/hook": "post-install, post-upgrade"
-    "helm.sh/hook-weight": "2"
-spec:
-  ports:
-  - port: 8080
-    targetPort: 8080
-  selector:
-    app: "luqman-eshop"
-  type: LoadBalancer
----
-# Source: helm-parent-child-example/templates/microservice.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  labels:
-    app: "luqman-eshop"
-  name: "luqman-eshop"
-  namespace: "luqman-eshop"
-  annotations:
-    "helm.sh/hook": "post-install, post-upgrade"
-    "helm.sh/hook-weight": "1"
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: "luqman-eshop"
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
-  template:
-    metadata:
-      labels:
-        app: "luqman-eshop"
-    spec:
-      containers:
-      - name: "luqman-eshop-server"
-        image: "image-registry.openshift-image-registry.svc:5000/openshift/nginx"
-        ports:
-          - containerPort: 8080
-        command:
-          - /bin/sh
-          - -c
-          - |-
-            while true;
-            do
-              echo "Current Timestamp: $(date +'%Y-%m-%d_%H-%M-%S-%3N')"
-              sleep 60
-            done
-        volumeMounts:
-          - mountPath: "/app/data"
-            name: "luqman-eshop"
-      - name: "luqman-eshop-data-loader"
-        ports:
-          - containerPort: 8081
-        resources:
-          requests:
-            memory: 100Mi
-            cpu: 50m
-          limits:
-            memory: 300Mi
-            cpu: 250m
-        env:
-          - name: RW_TEST_PATH
-            value: "raw-bin"
-          - name: NODE_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: spec.nodeName
-          - name: POD_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name
-          - name: VOL_MOUNT_PATH
-            value: "/app/data"
-          - name: POD_IP
-            valueFrom:
-              fieldRef:
-                fieldPath: status.podIP
-        image: "image-registry.openshift-image-registry.svc:5000/openshift/nginx"
-        imagePullPolicy: IfNotPresent
-        volumeMounts:
-          - mountPath: "/app/data"
-            name: "luqman-eshop"
-        command:
-          - /bin/sh
-          - -c
-          - |
-            mkdir -p "${VOL_MOUNT_PATH}/${RW_TEST_PATH}"
-            
-            while true; 
-            do 
-              CURRENT_TIME="$(date +'%Y-%m-%d-%H-%M')"
-              RAW_BIN_DIR="${VOL_MOUNT_PATH}/${RW_TEST_PATH}/${CURRENT_TIME}"
-              DATA_DIR="${VOL_MOUNT_PATH}/${CURRENT_TIME}/POD_${POD_NAME}/NODE_${NODE_NAME}"
-              mkdir -p "${DATA_DIR}";
-              mkdir -p "${RAW_BIN_DIR}"
-
-              for i in {1..20}; 
-              do
-                dd if=/dev/urandom of="${RAW_BIN_DIR}/static-pv-${i}.log" bs=1M count=10;
-              done
-              
-              output="$(date +'%Y-%m-%d_%H-%M-%S-%3N')"; 
-              file_name="static-pv-$(date +'%m%d%Y-T%H%M').log";
-              echo "Current Timestamp: ${output}";
-              echo "Written on: ${output}" >> "${DATA_DIR}/${file_name}";
-              sleep 300; 
-            done
-      volumes:
-      - name: "luqman-eshop"
-        persistentVolumeClaim:
-          claimName: "luqman-eshop"
----
-# Source: helm-parent-child-example/templates/microservice.yaml
+# Source: helm-parent-child-example/templates/14-route.yaml
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: "luqman-eshop"
-  namespace: "luqman-eshop"
+  name: "eshop"
+  namespace: "eshop-dev"
   labels:
-    app: "luqman-eshop"
-    service: "luqman-eshop"
+    app: "eshop"
+    service: "eshop"
   annotations:
     "helm.sh/hook": "post-install, post-upgrade"
     "helm.sh/hook-weight": "3"
 spec:
   to:
     kind: Service
-    name: "luqman-eshop"
+    name: "eshop"
   port:
     targetPort: 8080

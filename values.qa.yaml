@@ -1,0 +1,8 @@
+# PARENT CHART DEFINITION
+namespace: eshop-qa
+app:
+  name: eshop
+  pvc_name: eshop
+  pvc_size: 30Gi
+  storageClassName: managed-csi
+  image: image-registry.openshift-image-registry.svc:5000/openshift/nginx

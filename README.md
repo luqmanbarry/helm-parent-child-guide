@@ -37,27 +37,6 @@ You can use helm hook weight to further organize the deployment order of the man
 
 1. Declare your dependencies in the [Chart.yaml](./Chart.yaml) file
     ```yaml
-    apiVersion: v2
-    name: helm-parent-child-example
-    description: A Helm chart to demonstrate a parent-child setup to deploy apps with dependencies on other charts.
-
-    type: application
-
-    version: 0.1.0
-
-    appVersion: "1.16.0"
-
-    dependencies:
-      - name: mysql
-        version: "12.2.4"
-        repository: "https://charts.bitnami.com/bitnami"
-      - name: wordpress
-        version: "24.1.12"
-        repository: "https://charts.bitnami.com/bitnami"
-    ```
-
-2. Prepare the the values file: `values.yaml` for common values, `values.<env-name>.yaml` for env specific values.
-    ```yaml
     # SUB CHARTS DEFINITION
     mysql:  # use sub-chart name and add its values as children of this key (indented in)
       # Chart Params: https://artifacthub.io/packages/helm/bitnami/mysql
@@ -66,13 +45,15 @@ You can use helm hook weight to further organize the deployment order of the man
         compatibility:
           openshift:
             adaptSecurityContext: auto
+      commonAnnotations:
+        "helm.sh/hook": "pre-install, pre-upgrade"
       nameOverride: "mysql-sub-chart-demo"
       auth:
-        rootPassword: ""
+        existingSecret: "mysql-sub-chart-auth"
         createDatabase: true
         database: "sub-chart-demo"
         username: "sub-chart-demo"
-        password: "sub-chart-demo"
+
 
     wordpress:  # use sub-chart name and add its values as children of this key (indented in)
       # Chart Params: https://artifacthub.io/packages/helm/bitnami/wordpress
@@ -81,9 +62,12 @@ You can use helm hook weight to further organize the deployment order of the man
         compatibility:
           openshift:
             adaptSecurityContext: auto
+      commonAnnotations:
+        "helm.sh/hook": "pre-install, pre-upgrade"
       nameOverride: "wordpress-sub-chart-demo"
       wordpressUsername: user
-      wordpressPassword: ""
+      # wordpressPassword: "" # Password retried from secret
+      existingSecret: "wordpress-sub-chart-auth"
       wordpressEmail: user@example.com
       wordpressFirstName: FirstName
       wordpressLastName: LastName
@@ -98,16 +82,13 @@ You can use helm hook weight to further organize the deployment order of the man
         database: "sub-chart-demo"
 
     # PARENT CHART DEFINITION
-    business_unit: sales
-    aws_region: us-east-1
-    storageClassName: managed-csi
-    micro_services:
-      - name: luqman-eshop
-        namespace: luqman-eshop
-        pvc_name: luqman-eshop
-        pvc_size: 20Gi
-        image: image-registry.openshift-image-registry.svc:5000/openshift/nginx
-
+    namespace: eshop-dev
+    app:
+      name: eshop
+      pvc_name: eshop
+      pvc_size: 20Gi
+      storageClassName: managed-csi
+      image: image-registry.openshift-image-registry.svc:5000/openshift/nginx
     ```
 
 3. Download the helm dependencies - They should not be committed to git (use .`gitignore`)
@@ -128,3 +109,10 @@ You can use helm hook weight to further organize the deployment order of the man
 
 6. Verify the helm template command output meets expectations
 7. Deploy the helm chart to a test environment for further verification
+   ```sh
+   # helm install --upgrade my-awesome-blog <chart-dir> --namespace <namespace> -f values.yaml -f values.env.yaml 
+   helm install --upgrade my-awesome-blog . \
+    --namespace my-cool-shop \
+    -f values.yaml \
+    -f values.qa.yaml 
+   ```

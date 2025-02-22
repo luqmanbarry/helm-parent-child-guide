@@ -1,38 +1,11 @@
 ---
-{{- range $app := .Values.micro_services }}
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: "{{ $app.namespace }}"
-  annotations:
-    "helm.sh/hook": "pre-install, pre-upgrade"
-    "helm.sh/hook-weight": "1"
-spec: {}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: "{{ $app.pvc_name }}"
-  namespace: "{{ $app.namespace }}"
-  annotations:
-    "helm.sh/hook": "pre-install, pre-upgrade"
-    "helm.sh/hook-weight": "2"
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: "{{ $app.pvc_size }}"
-  storageClassName: {{ $.Values.storageClassName }}
-  volumeMode: Filesystem
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: "{{ $app.name }}"
-  name: "{{ $app.name }}"
-  namespace: "{{ $app.namespace }}"
+    app: {{ .Values.app.name }}
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.namespace }}
   annotations:
     "helm.sh/hook": "post-install, post-upgrade"
     "helm.sh/hook-weight": "1"
@@ -40,7 +13,7 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app: "{{ $app.name }}"
+      app: {{ .Values.app.name }}
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -49,11 +22,11 @@ spec:
   template:
     metadata:
       labels:
-        app: "{{ $app.name }}"
+        app: {{ .Values.app.name }}
     spec:
       containers:
-      - name: "{{ $app.name }}-server"
-        image: "{{ $app.image }}"
+      - name: "{{ .Values.app.name }}-server"
+        image: "{{ .Values.app.image }}"
         ports:
           - containerPort: 8080
         command:
@@ -67,8 +40,8 @@ spec:
             done
         volumeMounts:
           - mountPath: "/app/data"
-            name: "{{ $app.pvc_name }}"
-      - name: "{{ $app.name }}-data-loader"
+            name: "{{ .Values.app.pvc_name }}"
+      - name: "{{ .Values.app.name }}-data-loader"
         ports:
           - containerPort: 8081
         resources:
@@ -95,11 +68,11 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
-        image: "{{ $app.image }}"
+        image: "{{ .Values.app.image }}"
         imagePullPolicy: IfNotPresent
         volumeMounts:
           - mountPath: "/app/data"
-            name: "{{ $app.pvc_name }}"
+            name: "{{ .Values.app.pvc_name }}"
         command:
           - /bin/sh
           - -c
@@ -126,44 +99,6 @@ spec:
               sleep 300; 
             done
       volumes:
-      - name: "{{ $app.pvc_name }}"
+      - name: "{{ .Values.app.pvc_name }}"
         persistentVolumeClaim:
-          claimName: "{{ $app.pvc_name }}"
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: "{{ $app.name }}"
-  name: "{{ $app.name }}"
-  namespace: "{{ $app.namespace }}"
-  annotations:
-    "helm.sh/hook": "post-install, post-upgrade"
-    "helm.sh/hook-weight": "2"
-spec:
-  ports:
-  - port: 8080
-    targetPort: 8080
-  selector:
-    app: "{{ $app.name }}"
-  type: LoadBalancer
----
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  name: "{{ $app.name }}"
-  namespace: "{{ $app.namespace }}"
-  labels:
-    app: "{{ $app.name }}"
-    service: "{{ $app.name }}"
-  annotations:
-    "helm.sh/hook": "post-install, post-upgrade"
-    "helm.sh/hook-weight": "3"
-spec:
-  to:
-    kind: Service
-    name: "{{ $app.name }}"
-  port:
-    targetPort: 8080
----
-{{- end -}}
+          claimName: "{{ .Values.app.pvc_name }}"
